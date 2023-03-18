@@ -3,4 +3,4 @@
 - 四则运算：逆波兰表达式实现，支持浮点数和负数
 - MyString：手搓了半个std::string类
 - 贪吃蛇：顾名思义是一个小游戏
-- ConsoleClick：控制台实现点击，有些积累
+- ConsoleClick：控制台实现点击，有些鸡肋
