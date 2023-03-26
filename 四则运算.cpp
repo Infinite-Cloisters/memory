@@ -1,4 +1,4 @@
-﻿#include<iostream>
+#include<iostream>
 #include<fstream>
 #include<string>
 #include<stack>
@@ -10,7 +10,7 @@ class RNP {/*全称逆波兰表达式*/
 	};
 	std::queue<MixedData> _operandQueue;//操作数队列
 	std::stack<char> _operatorStack;//操作符堆栈
-	std::stack<long double> _calcuteStack;//计算专用堆栈
+	std::stack<long double> _calculateStack;//计算专用堆栈
 	void GenerateRNP(std::string&);//创建逆波兰表达式
 	void MovStackToQueue(MixedData& tmp) {
 		tmp._op = _operatorStack.top();
@@ -23,9 +23,9 @@ class RNP {/*全称逆波兰表达式*/
 			return true;
 		}return false;
 	}
-	bool FindNextDigit(std::string::const_iterator iter, std::string& s) {
+	static bool FindNextDigit(std::string::const_iterator iter, std::string& s) {
 		bool isNotLBracket = true;
-		for (iter++; iter != s.end();iter++) {
+		for (iter++; iter != s.end(); iter++) {
 			switch (*iter) {
 			case '(': isNotLBracket = false;
 			case '+': if (isNotLBracket) return false;
@@ -62,7 +62,7 @@ bool RNP::CheckVaildation(std::string& s) {
 			} else return false;//存在非法字符直接返回
 		}
 	}
-	return lBracketNum == rBracketNum ? true : false;//顺带检验括号数量是否匹配
+	return lBracketNum == rBracketNum;//顺带检验括号数量是否匹配
 }
 void RNP::GenerateRNP(std::string& s) {
 	std::string octaWord;//存储双精度浮点数对应字符串
@@ -97,7 +97,7 @@ void RNP::GenerateRNP(std::string& s) {
 			else low--;
 			_operatorStack.push(it);
 			break;
-		case ')'://kazaizhelile
+		case ')':
 			while (_operatorStack.top() != '(') {
 				MovStackToQueue(tmp);
 			}
@@ -124,28 +124,24 @@ void RNP::GenerateRNP(std::string& s) {
 	while (_operatorStack.empty() != true) MovStackToQueue(tmp);
 }
 long double  RNP::CalculateRNP(std::string& s) {
-	std::cout << "RNP>> ";
 	for (GenerateRNP(s); _operandQueue.empty() != true; _operandQueue.pop()) {
 		if (_operandQueue.front()._op == '\0') {/*双精度浮点数项:*/
-			std::cout << _operandQueue.front()._num << ' ';
-			_calcuteStack.push(_operandQueue.front()._num);
+			_calculateStack.push(_operandQueue.front()._num);
 		} else {/*操作符项:*/
-			std::cout << _operandQueue.front()._op << ' ';//debug用
-			auto num1 = _calcuteStack.top(); _calcuteStack.pop();
-			auto num2 = _calcuteStack.empty() ? 0 : _calcuteStack.top();
-			if (!_calcuteStack.empty()) _calcuteStack.pop();
+			auto num1 = _calculateStack.top(); _calculateStack.pop();
+			auto num2 = _calculateStack.empty() ? 0 : _calculateStack.top();
+			if (!_calculateStack.empty()) _calculateStack.pop();
 			switch (_operandQueue.front()._op) {
-			case '+':_calcuteStack.push(num2 + num1); break;
-			case '-':_calcuteStack.push(num2 - num1); break;
-			case '*':_calcuteStack.push(num2 * num1); break;
-			case '/':_calcuteStack.push(num2 / num1); break;
-			case '%':_calcuteStack.push((long long) num2 % (long long) num1); break;
+			case '+':_calculateStack.push(num2 + num1); break;
+			case '-':_calculateStack.push(num2 - num1); break;
+			case '*':_calculateStack.push(num2 * num1); break;
+			case '/':_calculateStack.push(num2 / num1); break;
+			case '%':_calculateStack.push((long long) num2 % (long long) num1); break;
 			}
 		}
 	}
-	std::cout << '\n';
-	auto ans = _calcuteStack.top();
-	_calcuteStack.pop();
+	auto ans = _calculateStack.top();
+	_calculateStack.pop();
 	return ans;
 }
 signed main(int argc, char* argv[]) {
@@ -176,10 +172,10 @@ signed main(int argc, char* argv[]) {
 				}
 				continue;//如果为指令类，直接进入下一个循环中
 			}
-			if (curStr == "") continue;//空输入直接跳过
+			if (curStr.empty() == true) continue;//空输入直接跳过
 			if (Console.CheckVaildation(curStr) == true) {/*合法性校验通过*/
 				it = Console.CalculateRNP(curStr);
-				std::cout << "ANS>> " << curStr << " = " << it << '\n';
+				std::cout << "ANS>> " <<  it << '\n';
 			} else std::cout << "Invalid Inputs!" << '\n';
 		}
 	} else {
