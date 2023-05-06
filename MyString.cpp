@@ -1,4 +1,4 @@
-﻿#include <cstring>
+#include <cstring>
 #include <iostream>
 /*
 String[0]==begin
@@ -12,7 +12,7 @@ private://私有变量
 	size_t _length;  // 两倍扩容
 public://公有类——迭代器
 	class iterator {
-	protected:
+	public:
 		char* ptr;
 	public:
 		bool operator!=(iterator iter) { return this->ptr != iter.ptr; }
@@ -33,7 +33,7 @@ public://公有类——迭代器
 		iterator(char* begin = nullptr) :ptr(begin) {}
 	};//简化为双向迭代器
 	class reverse_iterator {
-	protected:
+	public:
 		char* ptr;
 	public:
 		reverse_iterator(char* rbegin) :ptr(rbegin) {}
@@ -86,14 +86,14 @@ public://赋值系列
 		: _length(strlen(input.ptrString)) {
 		ptrString = new char[_length * 2 + 2];
 		trueSize = _length * 2;
-		strcpy_s(ptrString, _length + 1, input.ptrString);
+		strcpy_s(ptrString+1, _length + 1, input.ptrString);
 	}
 	void assign(const char* input) {
 		delete[] ptrString;
 		_length = strlen(input);
 		ptrString = new char[_length * 2 + 2];
 		trueSize = _length * 2;
-		strcpy_s(ptrString, _length + 1, input);
+		strcpy_s(ptrString+1, _length + 1, input);
 	}
 	void operator=(const char* input) { assign(input); }
 	void assign(String& input) {
@@ -101,7 +101,7 @@ public://赋值系列
 		_length = strlen(input.c_str());
 		ptrString = new char[_length * 2 + 2];
 		trueSize = _length * 2;
-		strcpy_s(ptrString, _length + 1, input.c_str());
+		strcpy_s(ptrString+1, _length + 1, input.c_str());
 	}
 	void operator=(String& input) { assign(input); }
 	~String() { if (ptrString != nullptr) delete[] ptrString; }
@@ -124,8 +124,8 @@ public:
 		return ptrString[index];
 	}
 	char operator[](size_t index) { return this->at(index); }
-	char& front() const{ return ptrString[1]; }
-	char& back() const{ return ptrString[_length]; }
+	char& front() const { return ptrString[1]; }
+	char& back() const { return ptrString[_length]; }
 	//迭代器操作
 	const char* cbegin() const { return ptrString + 1; }
 	iterator begin()  const { return iterator(ptrString + 1); }
@@ -204,7 +204,7 @@ public:
 		}
 		return -1;
 	}
-	reverse_iterator rfind(char ch, reverse_iterator iter)  {
+	reverse_iterator rfind(char ch, reverse_iterator iter) {
 		for (; iter != this->rend(); ++iter) {
 			if (*iter == ch) return iter;
 		}
@@ -212,7 +212,7 @@ public:
 	}
 	long long rfind(const char* ch, size_t rbegin = 0) {
 		for (size_t circle = _length - 1 - rbegin; circle != 0; circle--) {
-			if (compare(ptrString+circle, ch, this->end())) {
+			if (compare(ptrString + circle, ch, this->end())) {
 				return circle - 1;
 			}
 		}
@@ -387,10 +387,20 @@ void String::replace(iterator first, iterator last, const char* substr, const ch
 		} else ++first;
 	}
 }
+
 signed main() {
-	String s = "end";
-	s.append(s, 0, 3);
-	s.at(0) = '5';
+	char cstr[100];
+	std::cin.getline(cstr, 100);
+	String s;
+	s = cstr;
+
+	//String::iterator iter = s.begin();
+	//for (; *iter == *(iter + 1); ++iter) {}
+	//s.erase(s.begin(), iter);
+	
+	String::reverse_iterator iter = s.rbegin();
+	for (; *iter == *(iter + 1); ++iter) {}
+	s.erase(iter-1,s.end());
 	std::cout << s.c_str();
 	return 0;
 }
