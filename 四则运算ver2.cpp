@@ -2,6 +2,7 @@
 #include<fstream>
 #include<string>
 #include<stack>
+#include<cmath>
 #include<queue>
 #include<unordered_map>
 class RNP {/*全称逆波兰表达式*/
@@ -53,8 +54,8 @@ public:
 		oputFile.open(path, std::ios_base::app);
 		while (!iputFile.eof()) {
 			std::getline(iputFile, curStr);
-			if (Console.CheckVaildation(curStr)) {
-				it = Console.CalculateRNP(curStr);
+			if (CheckVaildation(curStr)) {
+				it = CalculateRNP(curStr);
 				oputFile << curStr << "=" << it << '\n';
 				std::cout << curStr << " = " << it << '\n';
 			} else std::cout << "Invalid Inputs!" << '\n';
