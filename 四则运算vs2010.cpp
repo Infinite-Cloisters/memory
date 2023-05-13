@@ -1,5 +1,6 @@
-﻿#include<iostream>
+#include<iostream>
 #include<fstream>
+#include<cmath>
 #include<string>
 #include<stack>
 #include<queue>
@@ -44,7 +45,7 @@ public:
 	}
 	long double CalculateRNP(std::string&);//计算逆波兰表达式
 	bool CheckVaildation(std::string&);//校验字符串合法性
-	void OpenMode(std::string path,std::string curStr,long double it) {
+	void OpenMode(std::string path,std::string strList[0],long double it) {
 		iputFile.open(path, std::ios_base::in);//一般直接文件拖拽
 		if (iputFile.is_open() == false) {//OpenCheck
 			std::cout << "Falied to open." << std::endl;
@@ -57,11 +58,11 @@ public:
 		std::cout << "#----BEGIN----#" << '\n';
 		oputFile.open(path, std::ios_base::app);
 		while (!iputFile.eof()) {
-			std::getline(iputFile, curStr);
-			if (Console.CheckVaildation(curStr)) {
-				it = Console.CalculateRNP(curStr);
-				oputFile << curStr << "=" << it << '\n';
-				std::cout << curStr << " = " << it << '\n';
+			std::getline(iputFile, strList[0]);
+			if (CheckVaildation(strList[0])) {
+				it = CalculateRNP(strList[0]);
+				oputFile << strList[0] << "=" << it << '\n';
+				std::cout << strList[0] << " = " << it << '\n';
 			} else std::cout << "Invalid Inputs!" << '\n';
 		}
 		std::cout << "#-----END-----#" << std::endl;
@@ -69,9 +70,9 @@ public:
 		oputFile.close();
 		system("pause");
 	}
-	void SaveRes(std::string prvStr,long double it) {
+	void SaveRes(std::string strList[1],long double it) {
 		oputFile.open("CalculateOutput.txt", std::ios_base::app);
-		oputFile << prvStr << "=" << it << '\n';
+		oputFile << strList[1] << "=" << it << '\n';
 		std::cout << "Saved." << '\n';
 		oputFile.close();
 	}
@@ -169,36 +170,45 @@ long double  RNP::CalculateRNP(std::string& s) {
 }
 int main(int argc, char* argv[]) {
 	long double it(0);
-	std::string curStr;
-	std::string prvStr;
+	std::string strList[3];
+	/**
+	* strList[0] curStr
+	* strList[1] prvStr
+	* strList[2] prrvStr 避免保存异常情况
+	*/
 	if (argc == 1) {
 		while (true) {
-			prvStr = curStr;
+			strList[2] = strList[1];
+			strList[1] = strList[0];
 			std::cout << "Cin>> ";
-			std::getline(std::cin, curStr);
-			if (curStr[0] == '-'&&curStr[1] == '-') {
-				std::string cmd = curStr.substr(2,curStr.size()-2);
+			std::getline(std::cin, strList[0]);
+			if (strList[0][0] == '-'&&strList[0][1] == '-') {
+				std::string cmd = strList[0].substr(2,strList[0].size()-2);
 				auto findResult = Console._commandHash.find(cmd);
 				if (findResult != Console._commandHash.end()) {
 					switch (findResult->second) {
 					case 0:system("cls"); break;
-					case 1:Console.SaveRes(prvStr, it); break;
+					case 1:Console.SaveRes(&strList[1], it); break;
 					case 2:exit(0);
 					case 3:
 						std::cout << "PATH>>";
-						std::getline(std::cin, curStr);
-						Console.OpenMode(curStr.c_str(), curStr, it); break;
+						std::getline(std::cin, strList[0]);
+						Console.OpenMode(strList[0].c_str(), &strList[0], it); break;
 					}
 				} else std::cout << "Invalid Command!" << '\n';
+				strList[1] = strList[2];
 				continue;//如果为指令类，直接进入下一个循环中
 			}
-			if (curStr.empty()) continue;//空输入直接跳过
-			if (Console.CheckVaildation(curStr)) {/*合法性校验通过*/
-				it = Console.CalculateRNP(curStr);
+			if (strList[0].empty()) continue;//空输入直接跳过
+			if (Console.CheckVaildation(strList[0])) {/*合法性校验通过*/
+				it = Console.CalculateRNP(strList[0]);
 				std::cout << "ANS>> " <<  it << '\n';
-			} else std::cout << "Invalid Inputs!" << '\n';
+			} else {
+				strList[1] = strList[2];
+				std::cout << "Invalid Inputs!" << '\n';
+			}
 		}
-	} else Console.OpenMode(argv[1], curStr, it);
+	} else Console.OpenMode(argv[1], &strList[0], it);
 	system("pause");
 	return 0;
 } 
