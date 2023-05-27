@@ -76,13 +76,13 @@ void board::newGame() {
 
 void board::printRule() {
 	system("cls");
-	std::cout << "\t\t»¶Ó­Ê¹ÓÃÈý×ÓÁ¬ÖéÓÎÏ·!" << '\n';
-	std::cout << "\tÓÎÏ·¹æÔò:" << '\n';
-	std::cout << "\t1.Ã¿1²½ÊäÈëÒªÏÂÆåµÄ¸ñ×ÓµÄx£¬y×ø±ê£¬xÎªÐÐ×ø±ê£¬yÎªÁÐ×ø±ê£¬°´Enter¼ü\n";
-	std::cout << "\t2.ÓÐ1·½Ê×ÏÈ3¸öÆå×ÓÁ¬³ÉÒ»Ïß¼´ÅÐ»ñÊ¤\n";
-	std::cout << "\t3.µ±Æå×Ó²¼ÂúÆåÅÌµ«ÈÔÎÞ»ñÊ¤·½¼´ÎªÆ½¾Ö\n";
-	std::cout << "\t4.X·½ÏÈÐÐ\n";
-	std::cout << "\n\n\t\tÇë°´ÈÎÒâ¼ü¿ªÊ¼ÏÂÆå!\n\n";
+	std::cout << "\t\tæ¬¢è¿Žä½¿ç”¨ä¸‰å­è¿žç æ¸¸æˆ!" << '\n';
+	std::cout << "\tæ¸¸æˆè§„åˆ™:" << '\n';
+	std::cout << "\t1.æ¯1æ­¥è¾“å…¥è¦ä¸‹æ£‹çš„æ ¼å­çš„xï¼Œyåæ ‡ï¼Œxä¸ºè¡Œåæ ‡ï¼Œyä¸ºåˆ—åæ ‡ï¼ŒæŒ‰Enteré”®\n";
+	std::cout << "\t2.æœ‰1æ–¹é¦–å…ˆ3ä¸ªæ£‹å­è¿žæˆä¸€çº¿å³åˆ¤èŽ·èƒœ\n";
+	std::cout << "\t3.å½“æ£‹å­å¸ƒæ»¡æ£‹ç›˜ä½†ä»æ— èŽ·èƒœæ–¹å³ä¸ºå¹³å±€\n";
+	std::cout << "\t4.Xæ–¹å…ˆè¡Œ\n";
+	std::cout << "\n\n\t\tè¯·æŒ‰ä»»æ„é”®å¼€å§‹ä¸‹æ£‹!\n\n";
 	system("pause>nul");
 }
 
@@ -130,7 +130,7 @@ char board::checkState(char playerType) {
 				if (achBoard[row][col + colIter] == playerType) ++tmp;
 			}
 			max = max > tmp ? max : tmp;
-			/*  ¡ý */
+			/*  â†“ */
 			tmp = 0;
 			for (int rowIter = 0; rowIter + row < rows && rowIter < WIN; ++rowIter) {
 				if (achBoard[row + rowIter][col] == playerType) ++tmp;
