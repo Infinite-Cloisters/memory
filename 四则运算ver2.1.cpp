@@ -4,12 +4,12 @@
 #include<stack>
 #include<cmath>
 #include<queue>
-#include<unordered_map>
+#include<cstdint>
 
 #if __cplusplus >= 201103L
 
 /*全称逆波兰表达式*/
-class RNP {
+class RPN {
     std::queue<std::pair<char, long double>> _operandQueue; //操作数队列
     std::stack<char> stack_Operator; //操作符堆栈
     std::stack<long double> stack_Calculate; //计算专用堆栈
@@ -20,7 +20,7 @@ class RNP {
      * \brief 创建逆波兰表达式
      * \param String 经过合法性检验后的表达式
      */
-    void RNP_Generate(const std::string& String);
+    void RPN_Generate(const std::string& String);
 
     void MovStackToQueue() {
         _operandQueue.emplace(stack_Operator.top(), 0);
@@ -36,16 +36,11 @@ class RNP {
     }
 
 public:
-    std::unordered_map<std::string, int> hash_Command{{"cls", 0}, {"save", 1}, {"exit", 2}, {"input", 3},};
-    std::unordered_map<char, int> hash_Priority{
-        {'+', 1}, {'-', 1}, {'(', 1}, {'*', 2}, {'/', 2}, {'%', 2}, {'*', 2}, {'^', 2}
-    };
-    std::unordered_map<char, int> hash_Action{{'+', 1}, {'-', 2}, {'*', 3}, {'/', 4}, {'^', 5}, {'%', 6}};
     /**
      * \brief 计算逆波兰表达式
      * \param String 逆波兰表达式
      */
-    long double RNP_Calculate(const std::string& String);
+    long double RPN_Calculate(const std::string& String);
 
     /**
     * \brief 校验字符串合法性
@@ -62,12 +57,12 @@ public:
     void SaveRes(const std::string& prvStr, const long double it) {
         oputFile.open("Output.txt", std::ios_base::app);
         oputFile << prvStr << "=" << it << '\n';
-        std::cout << "Saved." << '\n';
+        std::cout << "Saved.\n";
         oputFile.close();
     }
 } Console;
 
-bool RNP::Vaild_Check(const std::string& String) {
+bool RPN::Vaild_Check(const std::string& String) {
     enum {
         BEGIN = -1,
         NUM,
@@ -107,7 +102,7 @@ bool RNP::Vaild_Check(const std::string& String) {
     return (bracketNum == 0) && statusCode != SIGNAL;
 }
 
-void RNP::RNP_Generate(const std::string& String) {
+void RPN::RPN_Generate(const std::string& String) {
     long double isPostitiveNum = 1;
     for (size_t low = 0; low < String.length(); low++) {
         /*优先级 ')' == '('#inPut  >> /' == ' * ' == '%' >> ' - ' == ' + ' >> '('#inStack*/
@@ -123,9 +118,10 @@ void RNP::RNP_Generate(const std::string& String) {
             case '%':
             case '*':
             case '/':
-            case '^': // pri == 2
+            case '^': // pri >= 2
                 if (PushWhenEmpty(temp)) break;
-                while (!stack_Operator.empty() && hash_Priority.find(stack_Operator.top())->second == 2)
+                while (!stack_Operator.empty() && stack_Operator.top() != '(' && 
+                       stack_Operator.top() != '+' && stack_Operator.top() != '-')
                     MovStackToQueue();
                 stack_Operator.push(temp);
                 break;
@@ -159,8 +155,8 @@ void RNP::RNP_Generate(const std::string& String) {
     while (stack_Operator.empty() != true) MovStackToQueue();
 }
 
-long double RNP::RNP_Calculate(const std::string& String) {
-    for (RNP_Generate(String); !_operandQueue.empty(); _operandQueue.pop()) {
+long double RPN::RPN_Calculate(const std::string& String) {
+    for (RPN_Generate(String); !_operandQueue.empty(); _operandQueue.pop()) {
         if (_operandQueue.front().first == '\0') {
             stack_Calculate.push(_operandQueue.front().second);
         } else {
@@ -168,21 +164,13 @@ long double RNP::RNP_Calculate(const std::string& String) {
             stack_Calculate.pop();
             auto num2 = stack_Calculate.empty() ? 0 : stack_Calculate.top();
             if (!stack_Calculate.empty()) stack_Calculate.pop();
-            switch (hash_Action.find(_operandQueue.front().first)->second) {
-                case 1: stack_Calculate.push(num2 + num1);
-                    break;
-                case 2: stack_Calculate.push(num2 - num1);
-                    break;
-                case 3: stack_Calculate.push(num2 * num1);
-                    break;
-                case 4: stack_Calculate.push(num2 / num1);
-                    break;
-                case 5: stack_Calculate.push(powl(num2, num1));
-                    break;
-                case 6: stack_Calculate.push(static_cast<long long>(num2) % static_cast<long long>(num1));
-                    break;
-                default: break;
-            }
+            const char op = _operandQueue.front().first;
+            if (op == '+') stack_Calculate.push(num2 + num1);
+            else if (op == '-') stack_Calculate.push(num2 - num1);
+            else if (op == '*') stack_Calculate.push(num2 * num1);
+            else if (op == '/') stack_Calculate.push(num2 / num1);
+            else if (op == '^') stack_Calculate.push(std::pow(num2, num1));
+            else if (op == '%') stack_Calculate.push(static_cast<long long>(num2) % static_cast<long long>(num1));
         }
     }
     const auto ans = stack_Calculate.top();
@@ -190,83 +178,95 @@ long double RNP::RNP_Calculate(const std::string& String) {
     return ans;
 }
 
-long double RNP::OpenMode(std::string path) {
-    long double result(0);
-    iputFile.open(path, std::ios_base::in); //一般直接文件拖拽
-    if (iputFile.is_open() == false) {
-        std::cout << "Falied to open." << std::endl;
-        system("pause");
-        return {};
+long double RPN::OpenMode(std::string path) {
+    long double result = 0;
+    iputFile.open(path, std::ios_base::in);
+    if (!iputFile.is_open()) {
+        std::cout << "Failed to open.\n";
+        std::system("pause");
+        return 0;
     }
     const size_t pos = path.rfind('\\');
-    path = path.substr(0, pos + 1);
-    path.append("Output.txt");
-    std::cout << '\n' << "Valid Results:" << std::endl;
-    std::cout << "#----BEGIN----#" << '\n';
+    if (pos != std::string::npos) {
+        path = path.substr(0, pos + 1);
+        path.append("Output.txt");
+    }
+    std::cout << "\nValid Results:\n#----BEGIN----#\n";
     oputFile.open(path, std::ios_base::app);
     std::string curStr;
-    while (!iputFile.eof()) {
-        std::getline(iputFile, curStr);
+    while (std::getline(iputFile, curStr)) {
         if (Vaild_Check(curStr)) {
-            result = RNP_Calculate(curStr);
+            result = RPN_Calculate(curStr);
             oputFile << curStr << "=" << result << '\n';
             std::cout << curStr << " = " << result << '\n';
-        } else std::cout << "Invalid Inputs!" << '\n';
+        } else {
+            std::cout << "Invalid Inputs!\n";
+        }
     }
-    std::cout << "#-----END-----#" << std::endl;
+    std::cout << "#-----END-----#\n";
     iputFile.close();
     oputFile.close();
-    system("pause");
+    std::system("pause");
     return result;
+}
+
+// 命令解析：使用编译期字符串比较
+enum class CmdType : uint8_t { Unknown, Cls, Save, Exit, Input };
+
+constexpr CmdType ParseCommand(std::string_view cmd) {
+    // C++20 可用 <=> 运算符，C++17 用三元链式比较
+    return (cmd == "cls")   ? CmdType::Cls :
+           (cmd == "save")  ? CmdType::Save :
+           (cmd == "exit")  ? CmdType::Exit :
+           (cmd == "input") ? CmdType::Input :
+                              CmdType::Unknown;
 }
 
 int main(const int argc, char* argv[]) {
     if (argc == 1) {
         std::string curStr;
+        std::string prvStr;
         long double it(0);
         while (true) {
-            std::string prvStr = curStr;
+            prvStr = curStr;
             std::cout << "Cin>> ";
             std::getline(std::cin, curStr);
-            if (curStr.empty()) continue; //空输入直接跳过
-            if (curStr[0] == '-' && curStr[1] == '-') {
-                std::string cmd = curStr.substr(2, curStr.size() - 2);
-                auto findResult = Console.hash_Command.find(cmd);
-                if (findResult != Console.hash_Command.end()) {
-                    switch (findResult->second) {
-                        case 0: system("cls");
-                            break;
-                        case 1: Console.SaveRes(prvStr, it);
-                            break;
-                        case 2: exit(0);
-                        case 3:
-                            std::cout << "PATH>>";
-                            std::getline(std::cin, curStr);
-                            it = Console.OpenMode(curStr);
-                            break;
-                        default: break;
-                    }
-                } else std::cout << "Invalid Command!" << '\n';
+            if (curStr.empty()) continue;
+            
+            // 使用string_view避免拷贝，直接解析命令
+            if (curStr.size() >= 2 && curStr[0] == '-' && curStr[1] == '-') {
+                const std::string_view cmd_view(curStr.c_str() + 2, curStr.size() - 2);
+                switch (ParseCommand(cmd_view)) {
+                    case CmdType::Cls: std::system("cls"); break;
+                    case CmdType::Save: Console.SaveRes(prvStr, it); break;
+                    case CmdType::Exit: return 0;
+                    case CmdType::Input:
+                        std::cout << "PATH>>";
+                        std::getline(std::cin, curStr);
+                        it = Console.OpenMode(curStr);
+                        break;
+                    default: std::cout << "Invalid Command!\n"; break;
+                }
                 continue;
             }
-            if (RNP::Vaild_Check(curStr)) {
-                it = Console.RNP_Calculate(curStr);
+            
+            if (RPN::Vaild_Check(curStr)) {
+                it = Console.RPN_Calculate(curStr);
                 std::cout << "ANS>> " << it << '\n';
-            } else std::cout << "Invalid Inputs!" << '\n';
+            } else {
+                std::cout << "Invalid Inputs!\n";
+                curStr.clear(); // 错误时清空，避免prvStr保存无效表达式
+            }
         }
-    } else Console.OpenMode(argv[1]);
+    } else {
+        Console.OpenMode(argv[1]);
+    }
     return 0;
 }
 #else
-
 int main() {
-    std::cout<<"ONLY SUPPORT C++11 C++14 C++17 ..."<<std::endl;
-    std::cout<<"ONLY SUPPORT C++11 C++14 C++17 ..."<<std::endl;
-    std::cout<<"ONLY SUPPORT C++11 C++14 C++17 ..."<<std::endl;
-    std::cout<<"<----Please modify the incompatible code manually---->"<<std::endl;
-    std::cout<<"<----Please modify the incompatible code manually---->"<<std::endl;
-    std::cout<<"<----Please modify the incompatible code manually---->"<<std::endl;
-    system("pause");
+    std::cout << "ONLY SUPPORT C++11 C++14 C++17 ...\n";
+    std::system("pause");
     return 0;
 }
 #endif
